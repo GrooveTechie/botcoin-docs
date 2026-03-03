@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Drafts - {{ trip.destination }} - Hotel Deal Negotiator{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="/trips">Trips</a> &gt; <a href="/trips/{{ trip.id }}">{{ trip.destination }}</a> &gt; Drafts
+</div>
+
+<div class="card">
+    <h2>Draft Queue for {{ trip.destination }}</h2>
+    <p>
+        <strong>Dates:</strong> {{ trip.check_in }} to {{ trip.check_out }} &nbsp;|&nbsp;
+        <strong>Guests:</strong> {{ trip.adults }} adults
+    </p>
+    
+    {% if hotels_without_draft %}
+    <div class="alert alert-info" style="margin-top: 1rem;">
+        <strong>{{ hotels_without_draft|length }} hotel(s)</strong> without drafts.
+        <form method="POST" action="/trips/{{ trip.id }}/drafts/generate" style="display: inline;">
+            <button type="submit" class="btn btn-primary btn-sm">Generate Drafts</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+{% if draft_data %}
+    {% for item in draft_data %}
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h3>{{ item.hotel.name }}</h3>
+                <p style="color: var(--gray-600); font-size: 0.875rem;">
+                    To: {{ item.hotel.contact_email }}
+                </p>
+            </div>
+            <div>
+                {% if item.draft.status.value == 'Draft' %}
+                    <span class="badge badge-draft">Draft</span>
+                {% elif item.draft.status.value == 'Approved' %}
+                    <span class="badge badge-approved">Approved ✓</span>
+                {% elif item.draft.status.value == 'Sent' %}
+                    <span class="badge badge-sent">Sent ✉️</span>
+                {% elif item.draft.status.value == 'Skipped' %}
+                    <span class="badge badge-skipped">Skipped</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div style="margin: 1rem 0;">
+            <strong>Subject:</strong> {{ item.draft.subject }}
+        </div>
+        
+        <div class="draft-body">{{ item.draft.body }}</div>
+        
+        <div class="actions" style="margin-top: 1rem;">
+            {% if item.draft.status.value == 'Draft' %}
+                <form method="POST" action="/drafts/{{ item.draft.id }}/approve" style="display: inline;">
+                    <button type="submit" class="btn btn-success btn-sm">✓ Approve</button>
+                </form>
+                <form method="POST" action="/drafts/{{ item.draft.id }}/skip" style="display: inline;">
+                    <button type="submit" class="btn btn-secondary btn-sm">Skip</button>
+                </form>
+            {% elif item.draft.status.value == 'Approved' %}
+                <form method="POST" action="/drafts/{{ item.draft.id }}/send" style="display: inline;">
+                    <button type="submit" class="btn btn-primary btn-sm">📤 Send Email</button>
+                </form>
+                <form method="POST" action="/drafts/{{ item.draft.id }}/skip" style="display: inline;">
+                    <button type="submit" class="btn btn-secondary btn-sm">Skip</button>
+                </form>
+            {% elif item.draft.status.value == 'Sent' %}
+                <span style="color: var(--gray-600); font-size: 0.875rem;">
+                    Sent at: {{ item.draft.sent_at }}
+                </span>
+                <form method="POST" action="/drafts/{{ item.draft.id }}/generate-followup" style="display: inline;">
+                    <button type="submit" class="btn btn-warning btn-sm">Generate Follow-up</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="card">
+        <div class="empty">
+            <p>No drafts yet.</p>
+            {% if hotels_without_draft %}
+            <p>Click "Generate Drafts" above to create emails for your hotel targets.</p>
+            {% else %}
+            <p><a href="/trips/{{ trip.id }}">Add some hotel targets</a> first!</p>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}
+
+<div class="alert alert-warning" style="margin-top: 1rem;">
+    <strong>⚠️ Safety Rules:</strong>
+    <ul style="margin: 0.5rem 0 0 1.5rem;">
+        <li>Drafts must be <strong>Approved</strong> before they can be sent</li>
+        <li>Minimum 10 seconds between sends (throttle)</li>
+        <li>Maximum 1 follow-up per thread (unless manually overridden)</li>
+    </ul>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Email Threads - Hotel Deal Negotiator{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <h2>Email Threads</h2>
+        <div class="actions">
+            <form method="POST" action="/threads/check" style="display: inline;">
+                <button type="submit" class="btn btn-primary" {% if not gmail_configured %}disabled{% endif %}>
+                    🔄 Check Inbox
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    {% if not gmail_configured %}
+    <div class="alert alert-warning" style="margin-top: 1rem;">
+        <strong>Gmail not configured.</strong> 
+        Please set up Gmail OAuth to check for replies. See README for instructions.
+    </div>
+    {% endif %}
+</div>
+
+{% if threads %}
+    {% for thread in threads %}
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h3>{{ thread.hotel_name }}</h3>
+                <p style="color: var(--gray-600); font-size: 0.875rem;">
+                    {{ thread.destination }} | {{ thread.check_in }} - {{ thread.check_out }}
+                </p>
+                <p style="color: var(--gray-600); font-size: 0.875rem;">
+                    To: {{ thread.contact_email }}
+                </p>
+            </div>
+            <div>
+                {% if thread.has_reply %}
+                    <span class="badge badge-reply">Has Reply! 📬</span>
+                {% else %}
+                    <span class="badge badge-sent">Awaiting Reply</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div style="margin: 1rem 0;">
+            <strong>Subject:</strong> {{ thread.subject }}
+        </div>
+        
+        {% if thread.last_snippet %}
+        <div style="margin: 1rem 0;">
+            <strong>Latest:</strong>
+            <div style="background: var(--gray-100); padding: 0.75rem; border-radius: 0.375rem; margin-top: 0.25rem; font-size: 0.875rem;">
+                {{ thread.last_snippet }}
+            </div>
+        </div>
+        {% endif %}
+        
+        <div style="margin-top: 1rem; font-size: 0.75rem; color: var(--gray-600);">
+            <span>Last checked: {{ thread.last_checked_at or 'Never' }}</span>
+            &nbsp;|&nbsp;
+            <span>Follow-ups sent: {{ thread.followup_count }}</span>
+            &nbsp;|&nbsp;
+            <span>Gmail Thread ID: {{ thread.gmail_thread_id[:20] }}...</span>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="card">
+        <div class="empty">
+            <p>No email threads yet.</p>
+            <p>Threads are created when you send an approved draft.</p>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}My Trips - Hotel Deal Negotiator{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>My Trips</h2>
+    
+    {% if trips %}
+    <table>
+        <thead>
+            <tr>
+                <th>Destination</th>
+                <th>Check-in</th>
+                <th>Check-out</th>
+                <th>Adults</th>
+                <th>Budget</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for trip in trips %}
+            <tr>
+                <td><strong>{{ trip.destination }}</strong></td>
+                <td>{{ trip.check_in }}</td>
+                <td>{{ trip.check_out }}</td>
+                <td>{{ trip.adults }}</td>
+                <td>{% if trip.budget %}${{ "%.0f"|format(trip.budget) }}{% else %}-{% endif %}</td>
+                <td>
+                    <div class="actions">
+                        <a href="/trips/{{ trip.id }}" class="btn btn-primary btn-sm">View</a>
+                        <a href="/trips/{{ trip.id }}/drafts" class="btn btn-secondary btn-sm">Drafts</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+        <p>No trips yet. Create your first trip below!</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Create New Trip</h2>
+    <form method="POST" action="/trips">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="destination">Destination *</label>
+                <input type="text" id="destination" name="destination" required placeholder="e.g., Paris, France">
+            </div>
+            <div class="form-group">
+                <label for="check_in">Check-in Date *</label>
+                <input type="date" id="check_in" name="check_in" required>
+            </div>
+            <div class="form-group">
+                <label for="check_out">Check-out Date *</label>
+                <input type="date" id="check_out" name="check_out" required>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="adults">Adults</label>
+                <input type="number" id="adults" name="adults" value="2" min="1" max="10">
+            </div>
+            <div class="form-group">
+                <label for="budget">Budget ($)</label>
+                <input type="number" id="budget" name="budget" step="0.01" placeholder="Total budget for stay">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="notes">Notes</label>
+            <textarea id="notes" name="notes" placeholder="Any special requirements or preferences..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Create Trip</button>
+    </form>
+</div>
+{% endblock %}

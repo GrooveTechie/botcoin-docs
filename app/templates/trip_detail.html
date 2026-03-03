@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}{{ trip.destination }} - Hotel Deal Negotiator{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="/trips">← Back to Trips</a>
+</div>
+
+<div class="card">
+    <h2>{{ trip.destination }}</h2>
+    <p>
+        <strong>Dates:</strong> {{ trip.check_in }} to {{ trip.check_out }} &nbsp;|&nbsp;
+        <strong>Guests:</strong> {{ trip.adults }} adults
+        {% if trip.budget %}&nbsp;|&nbsp; <strong>Budget:</strong> ${{ "%.0f"|format(trip.budget) }}{% endif %}
+    </p>
+    {% if trip.notes %}
+    <p><strong>Notes:</strong> {{ trip.notes }}</p>
+    {% endif %}
+    
+    <div class="actions" style="margin-top: 1rem;">
+        <a href="/trips/{{ trip.id }}/drafts" class="btn btn-primary">View Drafts</a>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Hotel Targets</h2>
+    
+    {% if hotels %}
+    <table>
+        <thead>
+            <tr>
+                <th>Hotel Name</th>
+                <th>Contact Email</th>
+                <th>Room Type</th>
+                <th>Website</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for hotel in hotels %}
+            <tr>
+                <td><strong>{{ hotel.name }}</strong></td>
+                <td>{{ hotel.contact_email }}</td>
+                <td>{{ hotel.room_type or '-' }}</td>
+                <td>
+                    {% if hotel.website %}
+                    <a href="{{ hotel.website }}" target="_blank">View</a>
+                    {% else %}-{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+        <p>No hotels added yet. Add hotel targets below!</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Add Hotel Target</h2>
+    <form method="POST" action="/trips/{{ trip.id }}/hotels">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="name">Hotel Name *</label>
+                <input type="text" id="name" name="name" required placeholder="e.g., Grand Hotel Paris">
+            </div>
+            <div class="form-group">
+                <label for="contact_email">Contact Email *</label>
+                <input type="email" id="contact_email" name="contact_email" required placeholder="reservations@hotel.com">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="website">Website URL</label>
+                <input type="url" id="website" name="website" placeholder="https://www.hotel.com">
+            </div>
+            <div class="form-group">
+                <label for="room_type">Room Type</label>
+                <input type="text" id="room_type" name="room_type" placeholder="e.g., Deluxe King">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Hotel</button>
+    </form>
+</div>
+{% endblock %}
